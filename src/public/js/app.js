@@ -24,11 +24,11 @@ function handleMessageSubmit(event) {
     input.value = "";
 }
 
-function showRoom() {
+function showRoom(newCount) {
     welcome.hidden = true;
     room.hidden = false;
     const h3 = room.querySelector("h3");
-    h3.innerText = `${roomName}'s Room`;
+    h3.innerText = `${roomName}'s Room 👤${newCount}`;
     const msgForm = room.querySelector("#msg");
     msgForm.addEventListener("submit", handleMessageSubmit);
 }
@@ -43,12 +43,29 @@ function handleRoomSubmit(event) {
 
 form.addEventListener("submit", handleRoomSubmit);
 
-socket.on("welcome", (user) => {
+socket.on("welcome", (user, newCount) => {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `${roomName}'s Room 👤${newCount}`;
     addMessage(`${user}님이 입장하셨습니다!🤩`);
 })
 
-socket.on("bye", (left) => {
+socket.on("bye", (left, newCount) => {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `${roomName}'s Room (${newCount})`;
     addMessage(`${left}님이 퇴장하셨습니다...😭`);
 })
 
 socket.on("new_message", addMessage);
+
+socket.on("room_change", (rooms) => {
+    const roomList = welcome.querySelector("ul");
+    roomList.innerHTML = "";
+    if (rooms.length === 0) {
+        return;
+    }
+    rooms.forEach(room => {
+        const li = document.createElement('li');
+        li.innerText = room;
+        roomList.append(li);
+    });
+});
