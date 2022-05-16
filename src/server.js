@@ -1,5 +1,5 @@
 import http from "http";
-import WebSocket from "ws";
+import SocketIO from "socket.io";
 import express from "express";
 
 const app = express();
@@ -12,26 +12,27 @@ app.get("/*", (req, res) => res.redirect("/"));
 
 const handleListen = () => console.log('Listening on http://localhost:3000!');
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const httpServer = http.createServer(app);
+const wsServer = SocketIO(httpServer);
 
-const sockets = [];
-wss.on("connection", (socket) => { //여기서의 socket은 연결된 브라우저를 뜻한다. 1-8 9분 참조
-    sockets.push(socket);
+wsServer.on("connection", (socket) => {
     socket["nickname"] = "익명의 프로도";
-    console.log("Connected to Browser 😍");
-    socket.on("close", () => console.log("Disconnected from the browser ❌"));
-    socket.on("message", (msg) => {
-        const message = JSON.parse(msg);
-        switch (message.type) {
-            case "new_message":
-                sockets.forEach(aSockets => aSockets.send(`${socket.nickname}: ${message.payload}`));
-                break;
-            case "nickname":
-                socket["nickname"] = message.payload;
-                break;
-        }
+    socket.onAny((event) => {
+        console.log(`Socket Event: ${event}`);
+    })
+    socket.on("enter_room", (roomName, done) => {
+        socket.join(roomName);
+        done();
+        socket.to(roomName).emit("welcome", socket.nickname);
     });
+    socket.on("disconnecting", () => {
+        socket.rooms.forEach((room) => socket.to(room).emit("bye", socket.nickname));
+    });
+    socket.on("new_message", (msg, room, done) => {
+        socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
+        done();
+    });
+    socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
 });
 
-server.listen(3000, handleListen);
+httpServer.listen(3000, handleListen);

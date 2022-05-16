@@ -14,6 +14,7 @@
     "nodemon": "^2.0.16"
   },
   "dependencies": {
+    "socket.io": "^4.5.0",
     "ws": "^8.6.0"
   }
 }
