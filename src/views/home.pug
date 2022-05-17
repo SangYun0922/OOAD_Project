@@ -16,6 +16,13 @@ html(lang="en")
                     input(id="roomInput", placeholder='room name', required, type='text')
                     input(id="nickInput", placeholder='Nickname', required, type='text')
                     button Enter Room
+            div#call
+                div#myStream
+                    video#myFace(autoplay, playsinline, width="400", height="400")
+                    button#mute Mute
+                    button#camera Turn Camera Off
+                    select#cameras
+
                 h4 Open Rooms: 
                 ul
             div#room
